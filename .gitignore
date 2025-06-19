@@ -21,6 +21,7 @@ npm-debug.log*
 patch.yaml
 notes
 ignore/*
+secrets.yaml
 
 # Visual Studio Code
 .vscode/*
