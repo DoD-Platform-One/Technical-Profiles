@@ -1,8 +1,8 @@
-# Big Bang Customer Template
+# Technical Profiles
 
-> _This is a mirror of a government repo hosted on [Repo1](https://repo1.dso.mil/) by [DoD Platform One](http://p1.dso.mil/). Please direct all code changes, issues and comments to <https://repo1.dso.mil/platform-one/big-bang/customers/technical-profiles>_
+> _[This](https://github.com/DoD-Platform-One/Technical-Profiles) is a mirror of a government repo hosted on [Repo1](https://repo1.dso.mil/) by [DoD Platform One](http://p1.dso.mil/). Issues, comments, and code changes will be replicated in <https://repo1.dso.mil/platform-one/big-bang/customers/technical-profiles> and will be assessed by the team there._
 
-This repository provides a template for managing your Big Bang configurations using predefined profiles. These profiles enable a collection of services and add-ons designed to work together for a specific use case. If there isn't currently a profile here that suits your use case, feel free to outline your profile and open a ticket or a pull request to get it added here.
+This repository provides templates for managing your Big Bang deployment using predefined "technical profiles." Each profile enables a collection of services and add-ons designed to work together for a specific use case. If there isn't currently a profile here that suits your use case, feel free to outline your profile and open a ticket or a pull request to create it.
 
 If you are new to Big Bang, it is recommended you start with the [Big Bang Quickstart Guide](https://repo1.dso.mil/big-bang/bigbang/-/blob/master/docs/guides/deployment-scenarios/quickstart.md) before customizing this template.
 
@@ -13,6 +13,7 @@ The technical profile structures are modeled after the umbrella-strategy outline
 Before using this template, ensure you have:
 
 *   A Kubernetes cluster [ready for Big Bang](https://repo1.dso.mil/platform-one/big-bang/bigbang/-/tree/master/docs/guides/prerequisites).
+*   `bbctl` installed and configured with your local Big Bang and Technical Profiles folder paths.
 *   `kubectl` installed and configured to access your cluster.
 *   `git` installed.
 *   `gpg` installed for SOPS encryption.
@@ -76,9 +77,9 @@ Follow these steps to configure your own Big Bang environment using this templat
         git commit -m "chore: configure SOPS GPG key fingerprint"
         ```
     *   **Encrypt Initial Secrets:**
-        *   This template includes a demo TLS certificate (`base/bigbang-dev-cert.yaml`) for the default domain `dev.bigbang.mil`. Encrypt this file into `base/secrets.enc.yaml`:
+        *   Create the base secrets file if it doesn't exist
             ```bash
-            sops --encrypt base/bigbang-dev-cert.yaml > base/secrets.enc.yaml
+            touch base/secrets.enc.yaml
             ```
         *   **Add Your Secrets:** Edit the newly created `base/secrets.enc.yaml` to add essential secrets like your Iron Bank pull credentials. Use the `sops` command, which will open the file in your default editor:
             ```bash
@@ -90,7 +91,7 @@ Follow these steps to configure your own Big Bang environment using this templat
             apiVersion: v1
             kind: Secret
             metadata:
-              name: common-bb # Or '<profile-name>-bb' for profile specific secrets
+              name: common-bb # This value is '<profile-name>-bb' for profile specific secrets
             stringData:
               values.yaml: |-
                 # Add your Iron Bank credentials here
@@ -117,31 +118,13 @@ Follow these steps to configure your own Big Bang environment using this templat
                 #         -----BEGIN CERTIFICATE-----
                 #         ...
                 #         -----END CERTIFICATE-----
-
-              # --- Existing content from bigbang-dev-cert.yaml below ---
-              # (Ensure this section remains if you keep the demo cert initially)
-              istio:
-                gateways:
-                  public:
-                    tls:
-                      key: |
-                        -----BEGIN PRIVATE KEY-----
-                        ... demo key ...
-                        -----END PRIVATE KEY-----
-                      cert: |
-                        -----BEGIN CERTIFICATE-----
-                        ... demo cert ...
-                        -----END CERTIFICATE-----
             ```
         *   Save and close the editor. SOPS will automatically re-encrypt the file.
     *   **Commit Encrypted Secrets:**
         ```bash
         git add base/secrets.enc.yaml
-        # Optional: Remove the unencrypted demo cert if you added your own TLS secrets
-        # git rm base/bigbang-dev-cert.yaml
-        git commit -m "feat: add initial encrypted secrets (Iron Bank creds, demo TLS)"
+        git commit -m "Add initial encrypted secrets"
         ```
-    *   **Important Security Note:** The demo TLS certificate (`base/bigbang-dev-cert.yaml`) and its private key are public. **Do not use it for production or sensitive environments.** Replace it with your own certificate/key (added to `base/secrets.enc.yaml` or an environment-specific `secrets.enc.yaml`) or configure `cert-manager` via `configmap.yaml` values.
 
 3.  **Configure Git Repository Source (Flux):**
     *   Edit the `bigbang.yaml` file within your chosen profile directory (e.g., `default-profile/bigbang.yaml`).
@@ -177,7 +160,7 @@ Follow these steps to configure your own Big Bang environment using this templat
           decryption:
             provider: sops
             secretRef:
-              name: sops-gpg # Matches the secret containing the GPG private key
+              name: sops-gpg # Matches the secret containing the GPG private key if using GPG
         ```
     *   Commit the change:
         ```bash
@@ -238,7 +221,7 @@ These steps deploy FluxCD to your cluster and configure it to manage your Big Ba
 4.  **Deploy Big Bang:**
     *   Apply the `bigbang.yaml` file corresponding to the profile you want to deploy (e.g., `default-profile`). This creates the Flux `GitRepository` and `Kustomization` resources in the cluster.
         ```bash
-        kubectl apply -f default-profile/bigbang.yaml
+        bbctl deploy bigbang --profile=default-profile
         ```
 
 5.  **Monitor Deployment:**
@@ -260,9 +243,9 @@ These steps deploy FluxCD to your cluster and configure it to manage your Big Ba
         ```
     *   Troubleshooting: Use `kubectl logs -n flux-system deploy/source-controller` or `kustomize-controller` for Flux issues. Use `kubectl describe` on failing HelmReleases or Pods.
 
-## Customization (Kustomize Workflow)
+## Profile Customization (Kustomize Workflow)
 
-Modify your Big Bang deployment by making changes in your Git repository. Flux will automatically apply them.
+Modify your Big Bang deployment profile by making changes in your Git repository. Flux will automatically apply them.
 
 *   **Modify Values:** Edit the `configmap.yaml` file in your profile overlay (e.g., `default-profile/configmap.yaml`) to change non-secret configurations like the domain, resource limits, or package-specific settings. Commit the changes to Git.
 *   **Modify Secrets:** Edit the encrypted `secrets.enc.yaml` files (in `base/` or your profile directory) using `sops <filename>`. Commit the changes. Profile specific secrets (`<profile-name>-bb`) typically override base secrets (`common-bb`) if keys conflict within the `values.yaml` structure.
