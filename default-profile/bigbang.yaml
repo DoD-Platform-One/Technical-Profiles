@@ -12,7 +12,7 @@ spec:
   interval: 10m
   url: https://repo1.dso.mil/big-bang/customers/technical-profiles.git
   ref:
-    branch: initial-customer-template
+    branch: main
   secretRef:
     name: private-git
 ---

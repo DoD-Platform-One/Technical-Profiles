@@ -102,22 +102,25 @@ Follow these steps to configure your own Big Bang environment using this templat
 
                 # Add other required secret values below
                 # Example: Istio CA certificates if not using cert-manager
-                # istio:
+                # istioGateway:
                 #   values:
-                #     cacerts:
-                #     - secretName: cacerts
-                #       certFile: |
-                #         -----BEGIN CERTIFICATE-----
-                #         ...
-                #         -----END CERTIFICATE-----
-                #       keyFile: |
-                #         -----BEGIN PRIVATE KEY-----
-                #         ...
-                #         -----END PRIVATE KEY-----
-                #       rootFile: |
-                #         -----BEGIN CERTIFICATE-----
-                #         ...
-                #         -----END CERTIFICATE-----
+                #     gateways:
+                #       public:
+                #         gatewayCerts:
+                #         - name: public-cert
+                #           tls:
+                #             key: |
+                #               -----BEGIN PRIVATE KEY-----
+                #               <private-key>
+                #               -----END PRIVATE KEY-----
+                #             cert: |
+                #               -----BEGIN CERTIFICATE-----
+                #               <cert-1>
+                #               -----END CERTIFICATE-----
+                #               -----BEGIN CERTIFICATE-----
+                #               <cert-2>
+                #               -----END CERTIFICATE-----
+
             ```
         *   Save and close the editor. SOPS will automatically re-encrypt the file.
     *   **Commit Encrypted Secrets:**
