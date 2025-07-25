@@ -3,3 +3,5 @@ creation_rules:
   # Base is shared, you can add keys from each environment that uses base here
   pgp: E550B5F0D060DB3BA042EE9EA758B8B5C5A4ED36
   path_regex: base/.*
+- path_regex: '^dev-gpg.asc$'
+  kms: 'arn:aws-us-gov:kms:us-gov-west-1:141025336883:key/955de827-66e6-4133-aa6e-e60f7d307ee2'

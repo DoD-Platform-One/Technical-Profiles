@@ -23,6 +23,7 @@ notes
 ignore/*
 secrets.yaml
 git-ca-secret.yaml
+*gpg.asc
 
 # Visual Studio Code
 .vscode/*
